@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:liceucubrio/main.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -17,6 +18,7 @@ class Stats1 extends StatefulWidget {
 class _TestingState extends State<Stats1> {
   final String url = "https://smobx1.github.io/lcb_json_test.json";
   List data;
+  bool isPurchased = true;
 
   @override
   void initState() {
@@ -76,75 +78,100 @@ class _TestingState extends State<Stats1> {
       appBar: basicAppBar(context, 'Stats 1', '/stats'),
       body: data == null
           ? loadingGif()
-          : ListView.builder(
-              itemCount: data == null ? 0 : data.length,
-              itemBuilder: (BuildContext context, int index) {
-                int probs = data[index]['probability'];
+          : Stack(
+              children: [
+                ListView.builder(
+                  itemCount: data == null ? 0 : data.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    int probs = data[index]['probability'];
 
-                if (index == 0) {
-                  return Padding(
-                    padding: EdgeInsets.all(15.0),
-                    child: new LinearPercentIndicator(
-                      animation: true,
-                      animationDuration: 2000,
-                      lineHeight: 30.0,
-                      leading: new Text("Epic"),
-                      trailing: new Text("Liric"),
-                      percent: data[index]['epic'] / 100,
-                      center: Text(data[index]['epic'].toString() + "%"),
-                      linearStrokeCap: LinearStrokeCap.butt,
-                      progressColor: Colors.orange,
-                    ),
-                  );
-                }
-                return new Container(
-                  child: new Center(
-                    child: new Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        new Card(
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                flex: 6,
-                                child: new Container(
-                                  child: new Text(data[index]['name']),
-                                  padding: const EdgeInsets.all(10),
-                                ),
+                    if (index == 0) {
+                      return Padding(
+                        padding: EdgeInsets.all(15.0),
+                        child: new LinearPercentIndicator(
+                          animation: true,
+                          animationDuration: 2000,
+                          lineHeight: 30.0,
+                          leading: new Text("Epic"),
+                          trailing: new Text("Liric"),
+                          percent: data[index]['epic'] / 100,
+                          center: Text(data[index]['epic'].toString() + "%"),
+                          linearStrokeCap: LinearStrokeCap.butt,
+                          progressColor: Colors.orange,
+                        ),
+                      );
+                    }
+                    return new Container(
+                      child: new Center(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            new Card(
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    flex: 6,
+                                    child: new Container(
+                                      child: new Text(data[index]['name']),
+                                      padding: const EdgeInsets.all(10),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 4,
+                                    child: new Container(
+                                      child: data[index]['past_5_years'] != "0"
+                                          ? Text(
+                                              'Frecventa ultimii 5 ani: ' +
+                                                  data[index]['past_5_years'] +
+                                                  '\nFrecventa ultimii 2 ani: ' +
+                                                  data[index]['past_2_years'],
+                                              style: TextStyle(fontSize: 9),
+                                            )
+                                          : Container(),
+                                      padding: const EdgeInsets.all(10),
+                                    ),
+                                  ),
+                                  new CircularPercentIndicator(
+                                    radius: 40.0,
+                                    lineWidth: 5.0,
+                                    percent: data[index]['probability'] / 100,
+                                    center: new Text(
+                                        data[index]['probability'].toString() +
+                                            "%"),
+                                    progressColor: _progressColor(
+                                        data[index]['probability']),
+                                  )
+                                ],
                               ),
-                              Expanded(
-                                flex: 4,
-                                child: new Container(
-                                  child: data[index]['past_5_years'] != "0"
-                                      ? Text(
-                                          'Frecventa ultimii 5 ani: ' +
-                                              data[index]['past_5_years'] +
-                                              '\nFrecventa ultimii 2 ani: ' +
-                                              data[index]['past_2_years'],
-                                          style: TextStyle(fontSize: 9),
-                                        )
-                                      : Container(),
-                                  padding: const EdgeInsets.all(10),
-                                ),
-                              ),
-                              new CircularPercentIndicator(
-                                radius: 40.0,
-                                lineWidth: 5.0,
-                                percent: data[index]['probability'] / 100,
-                                center: new Text(
-                                    data[index]['probability'].toString() +
-                                        "%"),
-                                progressColor:
-                                    _progressColor(data[index]['probability']),
-                              )
-                            ],
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                isPurchased == true
+                    ? Container()
+                    : Center(
+                        child: new ClipRect(
+                          child: new BackdropFilter(
+                            filter: new ImageFilter.blur(
+                                sigmaX: 10.0, sigmaY: 10.0),
+                            child: new Container(
+                              decoration: new BoxDecoration(
+                                  color: Colors.grey.shade200.withOpacity(0.2)),
+                              child: new Center(
+                                  child: new RaisedButton(
+                                onPressed: () {
+                                  print('buy pressed');
+                                },
+                                child: Text('Buy'),
+                              )),
+                            ),
                           ),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
+                        ),
+                      ),
+              ],
             ),
     );
   }
